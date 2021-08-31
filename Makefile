@@ -1,14 +1,17 @@
 VERSION=		0.5
-#CUDA=			/cm/shared/package/cuda100/toolkit/10.0.130
 CUDA=			$(shell dirname `dirname \`which nvcc\``)
 #CUDA=			/usr/local/cuda
+CUDA_INCLUDE=		$(shell dirname `find $(CUDA) -name cuda.h`)
+CUDA_LIBDIR=		$(shell dirname `find $(CUDA) -name libcuda.so`|head -n1)
+NVRTC_INCLUDE=		$(shell dirname `find $(CUDA) -name nvrtc.h`)
+NVRTC_LIBDIR=		$(shell dirname `find $(CUDA) -name libnvrtc.so`|head -n1)
 #POWER_SENSOR=		$(HOME)/projects/libpowersensor-master/build
 ARCH=			$(shell arch)
 CC=			gcc
 CXX=			g++ #-Wno-deprecated-declarations
 NVCC=			nvcc
 INCLUDES=		-I.
-#INCLUDES+=		-I$(CUDA)/include
+INCLUDES+=		-I$(CUDA_INCLUDE) -I$(NVRTC_INCLUDE)
 #INCLUDES+=		-I$(POWER_SENSOR)/include
 CXXFLAGS+=		-std=c++11 -O3 -g -fpic -fopenmp $(INCLUDES) -DNDEBUG
 NVCCFLAGS=		$(INCLUDES)
@@ -50,8 +53,8 @@ EXECUTABLES=		test/SimpleExample/SimpleExample\
 			test/CorrelatorTest/CorrelatorTest\
 			test/OpenCLCorrelatorTest/OpenCLCorrelatorTest
 
-LIBRARIES=		-L$(CUDA)/lib64 \
-			-L$(CUDA)/lib64/stubs -lcuda -lnvrtc #\
+LIBRARIES=		-L$(CUDA_LIBDIR) -lcuda\
+			-L$(NVRTC_LIBDIR) -lnvrtc #\
 			#-L$(POWER_SENSOR)/lib -lpowersensor #-lnvidia-ml
 
 

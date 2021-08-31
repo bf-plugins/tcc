@@ -10,6 +10,7 @@
 
 #include "test/Common/ComplexInt4.h"
 
+#include <atomic>
 #include <complex>
 #include <exception>
 //#include <fstream>

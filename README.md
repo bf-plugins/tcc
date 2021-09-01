@@ -1,5 +1,14 @@
 # Tensor-Core Correlator
 
+The Tensor-Core Correlator is a GPU library that exploits the tensor cores of
+modern NVIDIA GPUs to compute cross/auto correlations 5-10 times more efficiently
+than regular GPU cores. Its primary use is to combine the signals of (many)
+receivers of a radio telescope. The library can be used in any FX correlator,
+but is not a full correlator application: it only computes the correlations.
+The rest of the application should take care of I/O, filtering, etc.
+For more information, see the paper "The Tensor-Core Correlator" that will
+appear in _Astronomy and Astrophysics_ soon.
+
 ## Brief overview on how to use the Tensor-Core Correlator library:
 
 Build the library (just type `make`)

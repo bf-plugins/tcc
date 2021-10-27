@@ -89,7 +89,7 @@ libtcc/TCCorrelator.d:
 			-
 
 libtcc/libtcc.so.$(VERSION):		$(LIBTCC_OBJECTS)
-			$(CXX) -shared -o $@ -Wl,-soname=$@ $^ $(LIBRARIES)
+			$(CXX) -shared -o $@ $^ $(LIBRARIES)
 
 test/SimpleExample/SimpleExample:		$(SIMPLE_EXAMPLE_OBJECTS) libtcc/libtcc.so
 			$(NVCC) $(NVCCFLAGS) -o $@ $(SIMPLE_EXAMPLE_OBJECTS) -Xlinker -rpath=. -Llibtcc -ltcc $(LIBRARIES)

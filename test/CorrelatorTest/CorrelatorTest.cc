@@ -101,7 +101,7 @@ template <typename SampleType, typename VisibilityType> void CorrelatorTest::doT
 	    hostToDeviceStream.memcpyHtoDAsync(deviceSamples, hostSamples, samplesRef.bytesize());
 	    hostToDeviceRecordStop.enqueue(hostToDeviceStream);
 
-	    stream.waitEvent(hostToDeviceRecordStop.event);
+	    stream.wait(hostToDeviceRecordStop.event);
 #endif
 
 	    computeRecordStart.enqueue(stream);
@@ -112,7 +112,7 @@ template <typename SampleType, typename VisibilityType> void CorrelatorTest::doT
 	    computeRecordStop.enqueue(stream);
 
 #if !defined UNIFIED_MEMORY
-	    deviceToHostStream.waitEvent(computeRecordStop.event);
+	    deviceToHostStream.wait(computeRecordStop.event);
 	    deviceToHostRecordStart.enqueue(deviceToHostStream);
 	    deviceToHostStream.memcpyDtoHAsync(hostVisibilities, deviceVisibilities, visibilitiesRef.bytesize());
 	    deviceToHostRecordStop.enqueue(deviceToHostStream);

@@ -1,5 +1,5 @@
-#if !defined MULTI_ARRAY_H
-#define MULTI_ARRAY_H
+#if !defined TCC_MULTI_ARRAY_H
+#define TCC_MULTI_ARRAY_H
 
 // Experimental class that provides multi-dimensional arrays, similar to
 // boost::multi_array[_ref], but much simpler.

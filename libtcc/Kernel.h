@@ -1,5 +1,5 @@
-#if !defined KERNEL_H
-#define KERNEL_H
+#if !defined TCC_KERNEL_H
+#define TCC_KERNEL_H
 
 #include "util/cu.h"
 

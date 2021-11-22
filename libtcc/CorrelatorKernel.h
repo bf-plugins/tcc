@@ -1,5 +1,5 @@
-#if !defined CORRELATOR_KERNEL_H
-#define CORRELATOR_KERNEL_H
+#if !defined TCC_CORRELATOR_KERNEL_H
+#define TCC_CORRELATOR_KERNEL_H
 
 #include "libtcc/Kernel.h"
 

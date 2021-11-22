@@ -1,5 +1,5 @@
-#if !defined CORRELATOR_H
-#define CORRELATOR_H
+#if !defined TCC_CORRELATOR_H
+#define TCC_CORRELATOR_H
 
 #include "libtcc/CorrelatorKernel.h"
 #include "util/cu.h"
@@ -17,7 +17,7 @@ namespace tcc {
 		 unsigned nrReceiversPerBlock = 64
 		); // throw (cu::Error, nvrtc::Error)
 
-      void launchAsync(cu::Stream &, cu::DeviceMemory &isibilities, cu::DeviceMemory &samples); // throw (cu::Error)
+      void launchAsync(cu::Stream &, cu::DeviceMemory &visibilities, cu::DeviceMemory &samples); // throw (cu::Error)
       void launchAsync(CUstream, CUdeviceptr visibilities, CUdeviceptr samples); // throw (cu::Error)
 
       uint64_t FLOPS() const;

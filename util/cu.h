@@ -5,6 +5,7 @@
 #include <cuda_runtime_api.h>
 #include <exception>
 #include <fstream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -61,21 +62,18 @@ namespace cu {
   template <typename T> class Wrapper
   {
     public:
-      // Wrapper<T>(Wrapper<T> &) = delete; // disallow copies
-
       // conversion to C-style T
 
-      operator const T & () const
+      operator T () const
       {
 	return _obj;
       }
 
-      operator T & ()
+      operator T ()
       {
 	return _obj;
       }
 
-#if 0 // makes no sense if object is not copyable
       bool operator == (const Wrapper<T> &other)
       {
 	return _obj == other._obj;
@@ -85,24 +83,35 @@ namespace cu {
       {
 	return _obj != other._obj;
       }
-#endif
 
     protected:
       Wrapper<T>()
-      :
-        hasOwnership(true)
       {
+      }
+
+      Wrapper<T>(const Wrapper<T> &other)
+      :
+	_obj(other._obj),
+	manager(other.manager)
+      {
+      }
+
+      Wrapper<T>(Wrapper<T> &&other)
+      :
+	_obj(other._obj),
+	manager(std::move(other.manager))
+      {
+	other._obj = 0;
       }
 
       Wrapper<T>(T &obj)
       :
-        _obj(obj),
-        hasOwnership(false)
+        _obj(obj)
       {
       }
 
-      bool hasOwnership;
       T _obj;
+      std::shared_ptr<T> manager;
   };
   
   class Device : public Wrapper<CUdevice>
@@ -185,6 +194,7 @@ namespace cu {
         _primaryContext(false)
       {
 	checkCudaCall(cuCtxCreate(&_obj, flags, device));
+	manager = std::shared_ptr<CUcontext>(new CUcontext(_obj), [] (CUcontext *ptr) { if (*ptr) cuCtxDestroy(*ptr); delete ptr; });
       }
 
       Context(CUcontext context)
@@ -192,14 +202,6 @@ namespace cu {
 	Wrapper<CUcontext>(context),
 	_primaryContext(false)
       {
-      }
-
-      ~Context()
-      {
-	if (hasOwnership)
-	  checkCudaCall(cuCtxDestroy(_obj));
-	//else
-	  //checkCudaCall(cuDevicePrimaryCtxRelease(getDevice())); // FIXME
       }
 
       unsigned getApiVersion() const
@@ -225,7 +227,7 @@ namespace cu {
       {
 	CUcontext context;
 	checkCudaCall(cuCtxGetCurrent(&context));
-	return Context(context);
+	return std::move(Context(context));
       }
 
       void setCurrent() const
@@ -303,11 +305,7 @@ namespace cu {
       HostMemory(size_t size, int flags = 0)
       {
 	checkCudaCall(cuMemHostAlloc(&_obj, size, flags));
-      }
-
-      ~HostMemory()
-      {
-	checkCudaCall(cuMemFreeHost(_obj));
+	manager = std::shared_ptr<void *>(new (void *)(_obj), [] (void **ptr) { cuMemFreeHost(*ptr); delete ptr; });
       }
 
       template <typename T> operator T * ()
@@ -323,6 +321,7 @@ namespace cu {
       DeviceMemory(size_t size)
       {
 	checkCudaCall(cuMemAlloc(&_obj, size));
+	manager = std::shared_ptr<CUdeviceptr>(new CUdeviceptr(_obj), [] (CUdeviceptr *ptr) { cuMemFree(*ptr); delete ptr; });
       }
 
       DeviceMemory(CUdeviceptr ptr)
@@ -331,31 +330,14 @@ namespace cu {
       {
       }
 
-      DeviceMemory(HostMemory &hostMemory)
+      DeviceMemory(const HostMemory &hostMemory)
       {
-	hasOwnership = false;
 	checkCudaCall(cuMemHostGetDevicePointer(&_obj, hostMemory, 0));
-      }
-
-      ~DeviceMemory()
-      {
-	if (hasOwnership)
-	  checkCudaCall(cuMemFree(_obj));
       }
 
       const void *parameter() const // used to construct parameter list for launchKernel();
       {
 	return &_obj;
-      }
-
-      template <typename T> operator T * () const
-      {
-	return (T *) _obj;
-      }
-
-      template <typename T> operator const T * () const
-      {
-	return (const T *) _obj;
       }
   };
 
@@ -366,6 +348,7 @@ namespace cu {
       Array(unsigned width, CUarray_format format, unsigned numChannels)
       {
 	Array(width, 0, format, numChannels);
+	manager = std::shared_ptr<CUarray>(new CUarray(_obj), [] (CUarray *ptr) { cuArrayDestroy(*ptr); delete ptr; });
       }
 
       Array(unsigned width, unsigned height, CUarray_format format, unsigned numChannels)
@@ -376,6 +359,7 @@ namespace cu {
 	descriptor.Format      = format;
 	descriptor.NumChannels = numChannels;
 	checkCudaCall(cuArrayCreate(&_obj, &descriptor));
+	manager = std::shared_ptr<CUarray>(new CUarray(_obj), [] (CUarray *ptr) { cuArrayDestroy(*ptr); delete ptr; });
       }
 
       Array(unsigned width, unsigned height, unsigned depth, CUarray_format format, unsigned numChannels)
@@ -388,6 +372,7 @@ namespace cu {
 	descriptor.NumChannels = numChannels;
 	descriptor.Flags       = 0;
 	checkCudaCall(cuArray3DCreate(&_obj, &descriptor));
+	manager = std::shared_ptr<CUarray>(new CUarray(_obj), [] (CUarray *ptr) { cuArrayDestroy(*ptr); delete ptr; });
       }
 
       Array(CUarray &array)
@@ -395,79 +380,6 @@ namespace cu {
         Wrapper(array)
       {
       }
-
-      ~Array()
-      {
-	if (hasOwnership)
-	  checkCudaCall(cuArrayDestroy(_obj));
-      }
-  };
-
-
-#if 0
-  class TexObject : public Wrapper<CUtexObject> {
-    public:
-      TexObject(onst CUDA_RESOURCE_DESC *pResDesc, const CUDA_TEXTURE_DESC *pTexDesc, const CUDA_RESOURCE_VIEW_DESC *pResViewDesc)
-      {
-	checkCudaCall(cuTexObjectCreate(&_obj, pResDesc, pTexDesc, pResViewDesc));
-      }
-
-      TexObject(CUtexObject &obj)
-      :
-        Wrapper<CUtexObject>(obj)
-      {
-      }
-
-      ~TexObject()
-      {
-	if (hasOwnership)
-	  checkCudaCall(cuTexObjectDestroy(_obj));
-      }
-
-
-  };
-#endif
-
-
-  class TexRef : public Wrapper<CUtexref> {
-    public:
-      TexRef(CUtexref texref)
-      : 
-        Wrapper<CUtexref>(texref)
-      {
-      }
-
-#if 0 // deprecated
-      void setAddress(size_t &byte_offset, DeviceMemory &memory, size_t size)
-      {
-	checkCudaCall(cuTexRefSetAddress(&byte_offset, _obj, memory, size));
-      }
-
-      void setArray(Array &array, unsigned flags = CU_TRSA_OVERRIDE_FORMAT)
-      {
-	checkCudaCall(cuTexRefSetArray(_obj, array, flags));
-      }
-
-      void setAddressMode(int dim, CUaddress_mode am)
-      {
-	checkCudaCall(cuTexRefSetAddressMode(_obj, dim, am));
-      }
-
-      void setFilterMode(CUfilter_mode fm)
-      {
-	checkCudaCall(cuTexRefSetFilterMode(_obj, fm));
-      }
-
-      void setFlags(int flags)
-      {
-	checkCudaCall(cuTexRefSetFlags(_obj, flags));
-      }
-
-      void setFormat(CUarray_format fmt, int numPackedComponents)
-      {
-	checkCudaCall(cuTexRefSetFormat(_obj, fmt, numPackedComponents));
-      }
-#endif
   };
 
 
@@ -499,11 +411,13 @@ namespace cu {
 #else
 	checkCudaCall(cuModuleLoad(&_obj, file_name));
 #endif
+	manager = std::shared_ptr<CUmodule>(new CUmodule(_obj), [] (CUmodule *ptr) { cuModuleUnload(*ptr); delete ptr; });
       }
 
       Module(const void *data)
       {
 	checkCudaCall(cuModuleLoadData(&_obj, data));
+	manager = std::shared_ptr<CUmodule>(new CUmodule(_obj), [] (CUmodule *ptr) { cuModuleUnload(*ptr); delete ptr; });
       }
 
       Module(CUmodule &module)
@@ -512,18 +426,14 @@ namespace cu {
       {
       }
 
-      ~Module()
-      {
-	if (hasOwnership)
-	  checkCudaCall(cuModuleUnload(_obj));
-      }
-
+#if 0
       TexRef getTexRef(const char *name) const
       {
 	CUtexref texref;
 	checkCudaCall(cuModuleGetTexRef(&texref, _obj, name));
 	return TexRef(texref);
       }
+#endif
 
       CUdeviceptr getGlobal(const char *name) const
       {
@@ -537,7 +447,7 @@ namespace cu {
   class Function : public Wrapper<CUfunction>
   {
     public:
-      Function(Module &module, const char *name)
+      Function(const Module &module, const char *name)
       {
 	checkCudaCall(cuModuleGetFunction(&_obj, module, name));
       }
@@ -559,13 +469,6 @@ namespace cu {
       {
 	checkCudaCall(cuFuncSetCacheConfig(_obj, config));
       }
-
-#if 0
-      void paramSetTexRef(TexRef &texref)
-      {
-	checkCudaCall(cuParamSetTexRef(_obj, CU_PARAM_TR_DEFAULT, texref));
-      }
-#endif
   };
 
 
@@ -575,6 +478,7 @@ namespace cu {
       Event(int flags = CU_EVENT_DEFAULT)
       {
 	checkCudaCall(cuEventCreate(&_obj, flags));
+	manager = std::shared_ptr<CUevent>(new CUevent(_obj), [] (CUevent *ptr) { cuEventDestroy(*ptr); delete ptr; });
       }
 
       Event(CUevent &event)
@@ -583,16 +487,10 @@ namespace cu {
       {
       }
 
-      ~Event()
-      {
-	if (hasOwnership)
-	  checkCudaCall(cuEventDestroy(_obj));
-      }
-
-      float elapsedTime(Event &second) const
+      float elapsedTime(const Event &start) const
       {
 	float ms;
-	checkCudaCall(cuEventElapsedTime(&ms, second, _obj));
+	checkCudaCall(cuEventElapsedTime(&ms, start, _obj));
 	return ms;
       }
 
@@ -623,18 +521,13 @@ namespace cu {
       Stream(int flags = CU_STREAM_DEFAULT)
       {
 	checkCudaCall(cuStreamCreate(&_obj, flags));
+	manager = std::shared_ptr<CUstream>(new CUstream(_obj), [] (CUstream *ptr) { cuStreamDestroy(*ptr); delete ptr; });
       }
 
       Stream(CUstream stream)
       :
 	Wrapper<CUstream>(stream)
       {
-      }
-
-      ~Stream()
-      {
-	if (hasOwnership)
-	  checkCudaCall(cuStreamDestroy(_obj));
       }
 
       void memcpyHtoDAsync(CUdeviceptr devPtr, const void *hostPtr, size_t size)
@@ -669,7 +562,7 @@ namespace cu {
 	checkCudaCall(cuStreamSynchronize(_obj));
       }
 
-      void waitEvent(Event &event)
+      void wait(Event &event)
       {
 	checkCudaCall(cuStreamWaitEvent(_obj, event, 0));
       }
@@ -700,7 +593,7 @@ namespace cu {
       }
   };
 
-#if 1
+#if 0
   class Graph : public Wrapper<CUgraph>
   {
     public:
@@ -746,18 +639,13 @@ namespace cu {
       Graph(unsigned flags = 0)
       {
 	checkCudaCall(cuGraphCreate(&_obj, flags));
+	manager = std::shared_ptr<CUgraphNode>(new CUgraphNode(_obj), [] (CUgraphNode *ptr) { cuGraphDestroy(*ptr); delete ptr; });
       }
 
       Graph(CUgraph &graph)
       :
 	Wrapper(graph)
       {
-      }
-
-      ~Graph()
-      {
-	if (hasOwnership)
-	  checkCudaCall(cuGraphDestroy(_obj));
       }
 
       ExecKernelNode addKernelNode(/* std::vector<GraphNode> dependencies, */ const KernelNodeParams &kernelArgs)

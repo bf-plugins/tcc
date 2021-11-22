@@ -1,5 +1,5 @@
-#if !defined CONFIG_H
-#define CONFIG_H
+#if !defined TCC_CONFIG_H
+#define TCC_CONFIG_H
 
 #if defined __ARM_ARCH
 #define UNIFIED_MEMORY // assume this is a Jetson Xavier

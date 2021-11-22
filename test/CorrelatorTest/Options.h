@@ -1,5 +1,5 @@
-#if !defined OPTIONS_H
-#define OPTIONS_H
+#if !defined TCC_OPTIONS_H
+#define TCC_OPTIONS_H
 
 #include <exception>
 #include <string>

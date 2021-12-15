@@ -30,13 +30,13 @@ class CorrelatorTest : public UnitTest
 
 template<> complex_int4_t CorrelatorTest::randomValue<complex_int4_t>()
 {
-  return complex_int4_t(16 * drand48() - 8, 16 * drand48() - 8);
+  return complex_int4_t((int) (15 * drand48()) - 7, (int) (15 * drand48()) - 7);
 }
 
 
 template<> std::complex<int8_t> CorrelatorTest::randomValue<std::complex<int8_t>>()
 {
-  return std::complex<int8_t>(256 * drand48() - 128, 256 * drand48() - 128);
+  return std::complex<int8_t>((int) (255 * drand48()) - 127, (int) (255 * drand48()) - 127);
 }
 
 

@@ -35,10 +35,11 @@ Correlator::Correlator(unsigned nrBits,
 		       unsigned nrChannels,
 		       unsigned nrSamplesPerChannel,
 		       unsigned nrPolarizations,
-		       unsigned nrReceiversPerBlock
+		       unsigned nrReceiversPerBlock,
+		       const std::string &customStoreVisibility
 		      )
 :
-  correlatorModule(compileModule(nrBits, nrReceivers, nrChannels, nrSamplesPerChannel, nrPolarizations, nrReceiversPerBlock)),
+  correlatorModule(compileModule(nrBits, nrReceivers, nrChannels, nrSamplesPerChannel, nrPolarizations, nrReceiversPerBlock, customStoreVisibility)),
   correlatorKernel(correlatorModule, nrBits, nrReceivers, nrChannels, nrSamplesPerChannel, nrPolarizations, nrReceiversPerBlock)
 {
 }
@@ -49,7 +50,8 @@ cu::Module Correlator::compileModule(unsigned nrBits,
 				     unsigned nrChannels,
 				     unsigned nrSamplesPerChannel,
 				     unsigned nrPolarizations,
-				     unsigned nrReceiversPerBlock
+				     unsigned nrReceiversPerBlock,
+				     const std::string &customStoreVisibility
 				    )
 {
   cu::Device device(cu::Context::getCurrent().getDevice());
@@ -68,6 +70,9 @@ cu::Module Correlator::compileModule(unsigned nrBits,
     "-DNR_POLARIZATIONS=" + std::to_string(nrPolarizations),
     "-DNR_RECEIVERS_PER_BLOCK=" + std::to_string(nrReceiversPerBlock),
   };
+
+  if (!customStoreVisibility.empty())
+    options.push_back("-DCUSTOM_STORE_VISIBILITY=" + customStoreVisibility);
 
   //std::for_each(options.begin(), options.end(), [] (const std::string &e) { std::cout << e << ' '; }); std::cout << std::endl;
 

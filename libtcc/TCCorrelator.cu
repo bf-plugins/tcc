@@ -39,14 +39,21 @@
 using namespace nvcuda::wmma;
 
 #if NR_BITS == 4
-typedef char    Samples[NR_CHANNELS][NR_SAMPLES_PER_CHANNEL / NR_TIMES_PER_BLOCK][NR_RECEIVERS][NR_POLARIZATIONS][NR_TIMES_PER_BLOCK];
-typedef int2    Visibilities[NR_CHANNELS][NR_BASELINES][NR_POLARIZATIONS][NR_POLARIZATIONS];
+typedef char    Sample;
+typedef int2    Visibility;
 #elif NR_BITS == 8
-typedef char2   Samples[NR_CHANNELS][NR_SAMPLES_PER_CHANNEL / NR_TIMES_PER_BLOCK][NR_RECEIVERS][NR_POLARIZATIONS][NR_TIMES_PER_BLOCK];
-typedef int2    Visibilities[NR_CHANNELS][NR_BASELINES][NR_POLARIZATIONS][NR_POLARIZATIONS];
+typedef char2   Sample;
+typedef int2    Visibility;
 #elif NR_BITS == 16
-typedef __half2 Samples[NR_CHANNELS][NR_SAMPLES_PER_CHANNEL / NR_TIMES_PER_BLOCK][NR_RECEIVERS][NR_POLARIZATIONS][NR_TIMES_PER_BLOCK];
-typedef float2  Visibilities[NR_CHANNELS][NR_BASELINES][NR_POLARIZATIONS][NR_POLARIZATIONS];
+typedef __half2 Sample;
+typedef float2  Visibility;
+#endif
+
+
+typedef Sample     Samples[NR_CHANNELS][NR_SAMPLES_PER_CHANNEL / NR_TIMES_PER_BLOCK][NR_RECEIVERS][NR_POLARIZATIONS][NR_TIMES_PER_BLOCK];
+
+#if !defined CUSTOM_STORE_VISIBILITY
+typedef Visibility Visibilities[NR_CHANNELS][NR_BASELINES][NR_POLARIZATIONS][NR_POLARIZATIONS];
 #endif
 
 
@@ -194,10 +201,22 @@ __device__ inline float2 make_complex(float real, float imag)
 }
 
 
+#if defined CUSTOM_STORE_VISIBILITY
+CUSTOM_STORE_VISIBILITY
+#else
+
+template <typename T> __device__ inline void storeVisibility(Visibilities visibilities, unsigned channel, unsigned baseline, unsigned polY, unsigned polX, T visibility)
+{
+  visibilities[channel][baseline][polY][polX] = visibility;
+}
+
+#endif
+
+
 template <typename T> __device__ inline void storeVisibility(Visibilities visibilities, unsigned channel, unsigned baseline, unsigned recvY, unsigned recvX, unsigned tcY, unsigned tcX, unsigned polY, unsigned polX, bool skipCheckY, bool skipCheckX, T sumR, T sumI)
 {
   if ((skipCheckX || recvX + tcX <= recvY + tcY) && (skipCheckY || recvY + tcY < NR_RECEIVERS))
-    visibilities[channel][baseline + tcY * recvY + tcY * (tcY + 1) / 2 + tcX][polY][polX] = make_complex(sumR, sumI);
+    storeVisibility(visibilities, channel, baseline + tcY * recvY + tcY * (tcY + 1) / 2 + tcX, polY, polX, make_complex(sumR, sumI));
 }
 
 

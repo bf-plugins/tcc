@@ -5,6 +5,8 @@
 #include "util/cu.h"
 #include "util/nvrtc.h"
 
+#include <string>
+
 
 namespace tcc {
   class Correlator {
@@ -14,7 +16,8 @@ namespace tcc {
 		 unsigned nrChannels,
 		 unsigned nrSamplesPerChannel,
 		 unsigned nrPolarizations = 2,
-		 unsigned nrReceiversPerBlock = 64
+		 unsigned nrReceiversPerBlock = 64,
+		 const std::string &customStoreVisibility = ""
 		); // throw (cu::Error, nvrtc::Error)
 
       void launchAsync(cu::Stream &, cu::DeviceMemory &visibilities, cu::DeviceMemory &samples); // throw (cu::Error)
@@ -29,7 +32,8 @@ namespace tcc {
 				     unsigned nrChannels,
 				     unsigned nrSamplesPerChannel,
 				     unsigned nrPolarizations,
-				     unsigned nrReceiversPerBlock
+				     unsigned nrReceiversPerBlock,
+				     const std::string &customStoreVisibility
 				    );
 
       cu::Module       correlatorModule;

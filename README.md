@@ -52,6 +52,8 @@ typedef Sample Samples[NR_CHANNELS][NR_SAMPLES_PER_CHANNEL / NR_TIMES_PER_BLOCK]
 typedef Visibility Visibilities[NR_CHANNELS][NR_BASELINES][NR_POLARIZATIONS][NR_POLARIZATIONS];
 ```
 
+Note that in 4-bit and 8-bit mode, the input samples may not contain -8 or -128
+respectively, as these values cannot be conjugated properly.
 The input data type (`Samples`) is a weird format, but this seemed to be the only
 format that yields good performance (tensor cores are very unforgiving).
 

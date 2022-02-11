@@ -11,6 +11,8 @@ appear in _Astronomy and Astrophysics_ soon.
 
 ## Brief overview on how to use the Tensor-Core Correlator library:
 
+Clone the repository (`git clone --recursive`)
+
 Build the library (just type `make`)
 
 Include `libtcc/Correlator.h`, and link with `libtcc/libtcc.so`.

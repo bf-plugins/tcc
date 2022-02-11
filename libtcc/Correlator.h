@@ -3,7 +3,7 @@
 
 #include "libtcc/CorrelatorKernel.h"
 #include "external/cuda-wrappers/cu/cu.h"
-#include "util/nvrtc.h"
+#include "external/cuda-wrappers/cu/nvrtc.h"
 
 #include <string>
 

@@ -3,7 +3,6 @@ CUDA=			$(shell dirname `dirname \`which nvcc\``)
 #CUDA=			/usr/local/cuda
 CUDA_INCLUDE=		$(shell dirname `find $(CUDA) -name cuda.h`)
 CUDA_LIBDIR=		$(shell dirname `find $(CUDA) -name libcuda.so`|head -n1)
-NVRTC_INCLUDE=		$(shell dirname `find $(CUDA) -name nvrtc.h`)
 NVRTC_LIBDIR=		$(shell dirname `find $(CUDA) -name libnvrtc.so`|head -n1)
 #POWER_SENSOR=		$(HOME)/projects/libpowersensor-master/build
 ARCH=			$(shell arch)
@@ -11,15 +10,14 @@ CC=			gcc
 CXX=			g++ #-Wno-deprecated-declarations
 NVCC=			nvcc
 INCLUDES=		-I.
-INCLUDES+=		-I$(CUDA_INCLUDE) -I$(NVRTC_INCLUDE)
+INCLUDES+=		-I$(CUDA_INCLUDE)
 #INCLUDES+=		-I$(POWER_SENSOR)/include
 CXXFLAGS+=		-std=c++11 -O3 -g -fpic -fopenmp $(INCLUDES) -DNDEBUG
 NVCCFLAGS=		$(INCLUDES)
 
 #CXXFLAGS+=		-march=core-avx2 -mcmodel=medium
 
-LIBTCC_SOURCES=		util/nvrtc.cc\
-			libtcc/CorrelatorKernel.cc\
+LIBTCC_SOURCES=		libtcc/CorrelatorKernel.cc\
 			libtcc/Correlator.cc\
 			libtcc/Kernel.cc
 
@@ -58,8 +56,8 @@ CUDA_WRAPERS_INCLUDE=    ${CUDA_WRAPPERS_DIR}/cu
 #LIBTCC_OBJECTS+=         ${CUDA_WRAPERS_LIB}
 
 LIBRARIES=		-L$(CUDA_LIBDIR) -lcuda\
-			-L$(NVRTC_LIBDIR) -lnvrtc \
-			${CUDA_WRAPERS_LIB}
+			${CUDA_WRAPERS_LIB} \
+			-L${NVRTC_LIBDIR} -lnvrtc
 			#-L$(POWER_SENSOR)/lib -lpowersensor #-lnvidia-ml
 
 

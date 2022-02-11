@@ -2,7 +2,7 @@
 #include "test/Common/Record.h"
 #include "test/CorrelatorTest/CorrelatorTest.h"
 #include "util/ExceptionPropagator.h"
-#include "util/nvrtc.h"
+#include "external/cuda-wrappers/cu/nvrtc.h"
 
 #include <cstdlib>
 #include <cstring>

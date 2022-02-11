@@ -2,7 +2,7 @@
 #define UNIT_TEST_H
 
 #include "test/Common/Record.h"
-#include "util/cu.h"
+#include "external/cuda-wrappers/cu/cu.h"
 
 #if defined MEASURE_POWER
 #include <powersensor/NVMLPowerSensor.h>

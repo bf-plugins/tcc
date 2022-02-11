@@ -3,7 +3,7 @@
 
 #include "test/Common/Config.h"
 
-#include "util/cu.h"
+#include "external/cuda-wrappers/cu/cu.h"
 
 #if defined MEASURE_POWER
 #include <powersensor/NVMLPowerSensor.h>

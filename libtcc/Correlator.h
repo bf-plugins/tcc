@@ -2,7 +2,7 @@
 #define TCC_CORRELATOR_H
 
 #include "libtcc/CorrelatorKernel.h"
-#include "util/cu.h"
+#include "external/cuda-wrappers/cu/cu.h"
 #include "util/nvrtc.h"
 
 #include <string>

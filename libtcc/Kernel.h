@@ -1,7 +1,7 @@
 #if !defined TCC_KERNEL_H
 #define TCC_KERNEL_H
 
-#include "util/cu.h"
+#include "external/cuda-wrappers/cu/cu.h"
 
 #include <stdint.h>
 

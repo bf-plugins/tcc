@@ -18,8 +18,7 @@ NVCCFLAGS=		$(INCLUDES)
 
 #CXXFLAGS+=		-march=core-avx2 -mcmodel=medium
 
-LIBTCC_SOURCES=		util/cu.cc\
-			util/nvrtc.cc\
+LIBTCC_SOURCES=		util/nvrtc.cc\
 			libtcc/CorrelatorKernel.cc\
 			libtcc/Correlator.cc\
 			libtcc/Kernel.cc
@@ -53,8 +52,14 @@ EXECUTABLES=		test/SimpleExample/SimpleExample\
 			test/CorrelatorTest/CorrelatorTest\
 			test/OpenCLCorrelatorTest/OpenCLCorrelatorTest
 
+CUDA_WRAPPERS_DIR=       external/cuda-wrappers
+CUDA_WRAPERS_LIB=        ${CUDA_WRAPPERS_DIR}/libcu.so
+CUDA_WRAPERS_INCLUDE=    ${CUDA_WRAPPERS_DIR}/cu
+#LIBTCC_OBJECTS+=         ${CUDA_WRAPERS_LIB}
+
 LIBRARIES=		-L$(CUDA_LIBDIR) -lcuda\
-			-L$(NVRTC_LIBDIR) -lnvrtc #\
+			-L$(NVRTC_LIBDIR) -lnvrtc \
+			${CUDA_WRAPERS_LIB}
 			#-L$(POWER_SENSOR)/lib -lpowersensor #-lnvidia-ml
 
 
@@ -81,6 +86,10 @@ all::			$(EXECUTABLES)
 
 clean::
 			$(RM) $(OBJECTS) $(SHARED_OBJECTS) $(DEPENDENCIES) $(EXECUTABLES)
+
+${CUDA_WRAPERS_LIB}:
+			cd ${CUDA_WRAPPERS_DIR} && cmake .
+			cd ${CUDA_WRAPPERS_DIR} && CPATH=${CPATH}:${CUDA_INCLUDE} make
 
 libtcc/TCCorrelator.o:	libtcc/TCCorrelator.cu	# CUDA code embedded in object file
 			ld -r -b binary -o $@ $<

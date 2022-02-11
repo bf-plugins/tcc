@@ -1,0 +1,3 @@
+[submodule "external/cuda-wrappers"]
+	path = external/cuda-wrappers
+	url = https://github.com/nlesc-recruit/CUDA-wrappers.git

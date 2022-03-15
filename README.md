@@ -11,7 +11,9 @@ appear in _Astronomy and Astrophysics_ soon.
 
 ## Brief overview on how to use the Tensor-Core Correlator library:
 
-Build the library (just type `make`)
+Build the library:
+ * With meson: `meson build; cd build; meson compile`
+ * With make: `make`
 
 Include `libtcc/Correlator.h`, and link with `libtcc/libtcc.so`.
 Create a `tcc::Correlator` object with the number of receivers, channels, etc.

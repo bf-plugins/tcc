@@ -12,7 +12,15 @@ appear in _Astronomy and Astrophysics_ soon.
 ## Brief overview on how to use the Tensor-Core Correlator library:
 
 Build the library:
- * With meson: `meson build; cd build; meson compile`
+ 
+ * With meson: 
+ ```
+ meson build --prefix=/install/location
+ cd build
+ meson compile
+ meson install
+ ```
+
  * With make: `make`
 
 Include `libtcc/Correlator.h`, and link with `libtcc/libtcc.so`.

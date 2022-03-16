@@ -1,9 +1,10 @@
 # Tensor core correlator build script
-project('tcc', 'cpp', 'cuda', version: '0.0.1',
+project('tcc', 'cpp', 'cuda', version: '0.5.0',
          default_options : ['cpp_std=c++11', 'optimization=3'])
 cc = meson.get_compiler('cpp')
 pkg = import('pkgconfig')
-version = '0.5'
+version = '0.5.0'
+so_version = '0.5'
 build_exe = false
 
 # Dependencies
@@ -26,9 +27,10 @@ libtcc_srcs = [
 run_command('ld', '-r', '-b', 'binary', '-o', 'libtcc/TCCorrelator.o', 'libtcc/TCCorrelator.cu', check: true)
 
 lib_tcc = library('tcc', libtcc_srcs, 
-              version : version, soversion : '0', 
+              version : version, soversion : so_version, 
               dependencies: cuda_dep,
-              objects: 'libtcc/TCCorrelator.o'
+              objects: 'libtcc/TCCorrelator.o',
+              install: true
               )
 
 # Create pkgconfig file
